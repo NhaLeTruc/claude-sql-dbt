@@ -1,0 +1,64 @@
+name: 'ecommerce_analytics'
+version: '1.0.0'
+config-version: 2
+
+# Project profile configuration
+profile: 'ecommerce_analytics'
+
+# Model paths
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+# Build artifacts
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+  - "logs"
+
+# Model configurations per layer (following constitution)
+models:
+  ecommerce_analytics:
+    # Staging layer: views (lightweight, source-conformed)
+    staging:
+      +materialized: view
+      +schema: staging
+
+    # Intermediate layer: ephemeral or views (business logic transformations)
+    intermediate:
+      +materialized: ephemeral
+      +schema: intermediate
+
+    # Marts layer: tables (analytics-ready, frequently queried)
+    marts:
+      +materialized: table
+      core:
+        +schema: core
+      analytics:
+        +schema: analytics
+
+# Snapshot configurations
+snapshots:
+  ecommerce_analytics:
+    +target_schema: snapshots
+
+# Test configurations
+tests:
+  ecommerce_analytics:
+    +store_failures: true
+    +schema: test_failures
+
+# Seeds configuration
+seeds:
+  ecommerce_analytics:
+    +schema: seeds
+
+# Vars can be used for configuration
+vars:
+  # Date range for mock data
+  start_date: '2022-01-01'
+  end_date: '2024-12-31'

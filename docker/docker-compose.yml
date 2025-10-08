@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres_dbt
+    environment:
+      POSTGRES_USER: dbt_user
+      POSTGRES_PASSWORD: dbt_password
+      POSTGRES_DB: ecommerce_dw
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres/init-db.sql:/docker-entrypoint-initdb.d/01-init-db.sql
+      - ./postgres/mock-data/customers.sql:/docker-entrypoint-initdb.d/02-customers.sql
+      - ./postgres/mock-data/orders.sql:/docker-entrypoint-initdb.d/03-orders.sql
+      - ./postgres/mock-data/order_items.sql:/docker-entrypoint-initdb.d/04-order_items.sql
+      - ./postgres/mock-data/products.sql:/docker-entrypoint-initdb.d/05-products.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dbt_user -d ecommerce_dw"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio_dbt
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ./minio:/data
