@@ -100,6 +100,23 @@
 - **[Entity 1]**: [What it represents, key attributes without implementation]
 - **[Entity 2]**: [What it represents, relationships to other entities]
 
+### Data Quality Requirements *(mandatory for dbt models)*
+
+**Test Coverage**:
+- **Primary keys**: [List columns that must have unique + not_null tests]
+- **Foreign keys**: [List relationships that must be validated]
+- **Business rules**: [List custom validations needed, e.g., revenue >= 0, valid date ranges]
+- **Accepted values**: [List columns with constrained value sets]
+
+**Data Freshness**:
+- **Source freshness**: [Define acceptable staleness, e.g., "warn_after: 12 hours, error_after: 24 hours"]
+- **Update frequency**: [How often data should refresh]
+
+**Documentation Requirements**:
+- All models must have purpose descriptions
+- All columns must have business meaning documented
+- Assumptions and business logic must be captured
+
 ## Success Criteria *(mandatory)*
 
 <!--

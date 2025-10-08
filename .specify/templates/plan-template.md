@@ -31,7 +31,31 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+**Test-First Development** (NON-NEGOTIABLE):
+- [ ] All models have test definitions in schema.yml BEFORE SQL implementation
+- [ ] Tests cover: primary key uniqueness, not_null constraints, relationships, business rules
+- [ ] User approval obtained for test definitions
+
+**Data Quality Gates**:
+- [ ] Schema validation planned (column types and constraints in schema.yml)
+- [ ] Source freshness thresholds defined
+- [ ] Referential integrity tests identified for all foreign keys
+- [ ] Custom singular tests planned for business rules
+
+**dbt Feature Coverage**:
+- [ ] Feature demonstrates appropriate dbt capabilities (sources, models, tests, docs, etc.)
+- [ ] Materialization strategy justified (view/table/incremental/ephemeral)
+- [ ] Project structure follows standard layout (staging/intermediate/marts)
+
+**Documentation Requirements**:
+- [ ] Model purpose and column descriptions planned
+- [ ] Business assumptions and logic decisions documented
+- [ ] Documentation completeness validated via `dbt docs generate`
+
+**Development Workflow**:
+- [ ] Incremental testing strategy defined (dbt run/test --select)
+- [ ] CI validation planned (dbt build on PRs)
+- [ ] Pre-commit validation checklist communicated to team
 
 ## Project Structure
 
