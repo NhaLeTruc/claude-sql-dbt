@@ -1,0 +1,336 @@
+version: 2
+
+sources:
+  - name: raw_data
+    description: >
+      Raw e-commerce transactional data loaded from mock sources.
+      Data spans 2022-2024 with synthetic customer, order, and product information.
+    database: ecommerce_dw
+    schema: raw_data
+
+    # Source freshness monitoring
+    freshness:
+      warn_after: {count: 24, period: hour}
+      error_after: {count: 48, period: hour}
+
+    tables:
+      - name: customers
+        description: >
+          Customer master data including demographics, signup information, and current segment classification.
+          One row per customer. Primary key: customer_id.
+        columns:
+          - name: customer_id
+            description: Unique identifier for customer; primary key from source CRM system
+            tests:
+              - unique
+              - not_null
+
+          - name: email
+            description: Customer email address for communication and identification
+            tests:
+              - not_null
+
+          - name: name
+            description: Customer full name
+            tests:
+              - not_null
+
+          - name: signup_date
+            description: Date when customer registered/signed up for account
+            tests:
+              - not_null
+
+          - name: segment
+            description: Customer segment classification (new, active, at-risk, dormant, vip)
+            tests:
+              - accepted_values:
+                  values: ['new', 'active', 'at-risk', 'dormant', 'vip']
+                  quote: true
+
+          - name: state
+            description: US state code (2 characters)
+
+          - name: country
+            description: Country name (default USA for this demo)
+            tests:
+              - not_null
+
+          - name: updated_at
+            description: Timestamp of last update to customer record (for SCD tracking)
+            tests:
+              - not_null
+
+      - name: orders
+        description: >
+          Order header data from order management system.
+          One row per order. Primary key: order_id.
+        columns:
+          - name: order_id
+            description: Unique identifier for order; primary key from source order system
+            tests:
+              - unique
+              - not_null
+
+          - name: customer_id
+            description: Foreign key to customers table; customer who placed the order
+            tests:
+              - not_null
+              - relationships:
+                  to: source('raw_data', 'customers')
+                  field: customer_id
+
+          - name: order_date
+            description: Date when order was placed by customer
+            tests:
+              - not_null
+
+          - name: order_status
+            description: Current status of order in fulfillment pipeline
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'returned']
+                  quote: true
+
+          - name: order_total
+            description: Total order amount in USD including all line items
+            tests:
+              - not_null
+              - dbt_utils.expression_is_true:
+                  expression: ">= 0"
+
+          - name: campaign_id
+            description: Foreign key to campaign (NULL for organic orders not attributed to campaigns)
+
+          - name: created_at
+            description: Timestamp when order was created in system
+            tests:
+              - not_null
+
+          - name: updated_at
+            description: Timestamp of last update to order record
+            tests:
+              - not_null
+
+      - name: products
+        description: >
+          Product catalog from inventory system.
+          One row per product. Primary key: product_id.
+        columns:
+          - name: product_id
+            description: Unique identifier for product; primary key from product catalog
+            tests:
+              - unique
+              - not_null
+
+          - name: product_name
+            description: Product display name for customer-facing views
+            tests:
+              - not_null
+
+          - name: sku
+            description: Stock Keeping Unit code; unique identifier for inventory management
+            tests:
+              - unique
+              - not_null
+
+          - name: category
+            description: Product category for classification and reporting
+            tests:
+              - not_null
+
+          - name: subcategory
+            description: Product subcategory for detailed classification
+
+          - name: unit_cost
+            description: Cost to produce or acquire one unit (USD)
+            tests:
+              - not_null
+              - dbt_utils.expression_is_true:
+                  expression: ">= 0"
+
+          - name: list_price
+            description: Retail list price per unit (USD)
+            tests:
+              - not_null
+              - dbt_utils.expression_is_true:
+                  expression: ">= unit_cost"
+                  config:
+                    severity: warn
+
+          - name: is_active
+            description: Boolean flag indicating if product is currently available for sale
+            tests:
+              - not_null
+
+          - name: updated_at
+            description: Timestamp of last update to product record (for SCD tracking)
+            tests:
+              - not_null
+
+      - name: order_items
+        description: >
+          Line items for each order showing product quantities and pricing.
+          One row per product per order. Primary key: order_item_id.
+        columns:
+          - name: order_item_id
+            description: Unique identifier for order line item
+            tests:
+              - unique
+              - not_null
+
+          - name: order_id
+            description: Foreign key to orders table
+            tests:
+              - not_null
+              - relationships:
+                  to: source('raw_data', 'orders')
+                  field: order_id
+
+          - name: product_id
+            description: Foreign key to products table
+            tests:
+              - not_null
+              - relationships:
+                  to: source('raw_data', 'products')
+                  field: product_id
+
+          - name: quantity
+            description: Number of units ordered
+            tests:
+              - not_null
+              - dbt_utils.expression_is_true:
+                  expression: "> 0"
+
+          - name: unit_price
+            description: Price per unit at time of order (USD)
+            tests:
+              - not_null
+              - dbt_utils.expression_is_true:
+                  expression: ">= 0"
+
+          - name: discount
+            description: Discount amount applied to line item (USD)
+            tests:
+              - not_null
+              - dbt_utils.expression_is_true:
+                  expression: ">= 0"
+
+          - name: line_total
+            description: Total for this line item (quantity * unit_price - discount)
+            tests:
+              - not_null
+              - dbt_utils.expression_is_true:
+                  expression: ">= 0"
+
+models:
+  - name: stg_ecommerce__customers
+    description: >
+      Staging model for customers. Standardizes column names and types from raw source.
+      Applies basic transformations: renames columns to standard naming convention,
+      casts types for consistency, adds ETL metadata.
+      Materialized as view (lightweight, source-conformed).
+    columns:
+      - name: customer_id
+        description: Unique customer identifier; matches source raw_data.customers.customer_id
+        tests:
+          - unique
+          - not_null
+
+      - name: customer_name
+        description: Customer full name (renamed from 'name' in source)
+        tests:
+          - not_null
+
+      - name: email
+        description: Customer email address
+        tests:
+          - not_null
+
+      - name: customer_segment
+        description: Current segment classification (renamed from 'segment' in source)
+        tests:
+          - accepted_values:
+              values: ['new', 'active', 'at-risk', 'dormant', 'vip']
+              quote: true
+
+      - name: state
+        description: US state code
+
+      - name: country
+        description: Country name
+        tests:
+          - not_null
+
+      - name: signup_date
+        description: Date customer registered
+        tests:
+          - not_null
+
+      - name: source_updated_at
+        description: Timestamp from source system (renamed from 'updated_at')
+        tests:
+          - not_null
+
+      - name: dbt_updated_at
+        description: Timestamp when dbt model was last refreshed
+        tests:
+          - not_null
+
+  - name: stg_ecommerce__orders
+    description: >
+      Staging model for orders. Standardizes column names and types from raw source.
+      No business logic transformation, just standardization and type casting.
+      Materialized as view.
+    columns:
+      - name: order_id
+        description: Unique order identifier; matches source raw_data.orders.order_id
+        tests:
+          - unique
+          - not_null
+
+      - name: customer_id
+        description: Foreign key to customers
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_ecommerce__customers')
+              field: customer_id
+
+      - name: order_date
+        description: Date order was placed
+        tests:
+          - not_null
+
+      - name: order_status
+        description: Current order status in fulfillment pipeline
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'returned']
+              quote: true
+
+      - name: order_total
+        description: Total order amount (USD)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: campaign_id
+        description: Campaign attribution (NULL for organic)
+
+      - name: created_at
+        description: Order creation timestamp
+        tests:
+          - not_null
+
+      - name: source_updated_at
+        description: Timestamp from source system (renamed from 'updated_at')
+        tests:
+          - not_null
+
+      - name: dbt_updated_at
+        description: Timestamp when dbt model was last refreshed
+        tests:
+          - not_null
