@@ -32,7 +32,7 @@ SELECT
     -- Temporal metrics
     MIN(order_date) AS first_order_date,
     MAX(order_date) AS last_order_date,
-    {{ calculate_days_between('MAX(order_date)', 'CURRENT_DATE') }} AS days_since_last_order,
+    CURRENT_DATE - MAX(order_date) AS days_since_last_order,
 
     -- Frequency metrics
     COUNT(DISTINCT order_id) AS total_orders,

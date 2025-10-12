@@ -24,9 +24,10 @@
 
 WITH date_spine AS (
     -- Generate complete date range for data period
-    {{ generate_date_spine(
-        start_date="'2022-01-01'::date",
-        end_date="'2024-12-31'::date"
+    {{ dbt_utils.date_spine(
+        datepart="day",
+        start_date="to_date('2022-01-01', 'yyyy-mm-dd')",
+        end_date="to_date('2024-12-31', 'yyyy-mm-dd')"
     ) }}
 ),
 

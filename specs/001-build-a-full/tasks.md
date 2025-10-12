@@ -128,9 +128,9 @@
   - Target schema: snapshots
   - Unique key: customer_id
   - Add comments explaining SCD Type 2 purpose and usage
-- [ ] T032 [US1] Run User Story 1 models: `dbt run --select +customer_analytics` (builds all upstream dependencies)
-- [ ] T033 [US1] Test User Story 1 models: `dbt test --select +customer_analytics` (all tests should PASS)
-- [ ] T034 [US1] Run customer snapshot: `dbt snapshot --select customer_snapshot`
+- [X] T032 [US1] Run User Story 1 models: `dbt run --no-partial-parse --project-dir dbt_project --select +customer_analytics` (builds all upstream dependencies)
+- [X] T033 [US1] Test User Story 1 models: `dbt test --no-partial-parse --project-dir dbt_project --select +customer_analytics` (all tests should PASS)
+- [X] T034 [US1] Run customer snapshot: `dbt snapshot --no-partial-parse --project-dir dbt_project --select customer_snapshot`
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently. Analysts can query customer_analytics mart for customer insights.
 
@@ -198,9 +198,9 @@
   - Timestamp strategy on updated_at
   - Track category migrations and price changes
   - Add comments on SCD Type 2 usage for historical pricing
-- [ ] T047 [US2] Run User Story 2 models: `dbt run --select +product_performance`
-- [ ] T048 [US2] Test User Story 2 models: `dbt test --select +product_performance`
-- [ ] T049 [US2] Validate incremental model: `dbt run --select fact_order_items --full-refresh` then compare to incremental run
+- [X] T047 [US2] Run User Story 2 models: `dbt run --no-partial-parse --project-dir dbt_project --select +product_performance`
+- [X] T048 [US2] Test User Story 2 models: `dbt test --no-partial-parse --project-dir dbt_project --select +product_performance`
+- [X] T049 [US2] Validate incremental model: `dbt run --no-partial-parse --project-dir dbt_project --select fact_order_items --full-refresh` then compare to incremental run
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently. Product managers can analyze product performance metrics.
 
@@ -259,8 +259,8 @@
   - Compute mom_growth_pct and yoy_growth_pct using LAG()
   - Add comments on monthly seasonality and growth calculations
   - Depends on T056
-- [ ] T059 [US3] Run User Story 3 models: `dbt run --select +orders_daily +orders_weekly +orders_monthly`
-- [ ] T060 [US3] Test User Story 3 models: `dbt test --select +orders_daily +orders_weekly +orders_monthly`
+- [X] T059 [US3] Run User Story 3 models: `dbt run --no-partial-parse --project-dir dbt_project --select +orders_daily +orders_weekly +orders_monthly`
+- [X] T060 [US3] Test User Story 3 models: `dbt test --no-partial-parse --project-dir dbt_project --select +orders_daily +orders_weekly +orders_monthly`
 
 **Checkpoint**: At this point, all time-series models work independently. Business analysts can perform trend analysis and forecasting.
 
@@ -295,8 +295,9 @@
   - Define marketing_dashboard exposure depending on marketing_attribution
   - Include owner (Analytics Team), description, mock URL
   - Demonstrates exposure tracking for downstream BI tools
-- [ ] T065 [US4] Run User Story 4 models: `dbt run --select +marketing_attribution`
-- [ ] T066 [US4] Test User Story 4 models: `dbt test --select +marketing_attribution`
+- [X] T065.0 [US4] Run seed csv files: `dbt seed --no-partial-parse --project-dir dbt_project`
+- [X] T065 [US4] Run User Story 4 models: `dbt run --no-partial-parse --project-dir dbt_project --select +marketing_attribution`
+- [X] T066 [US4] Test User Story 4 models: `dbt test --no-partial-parse --project-dir dbt_project --select +marketing_attribution`
 
 **Checkpoint**: All user stories should now be independently functional. Marketing analysts can perform campaign ROI analysis.
 

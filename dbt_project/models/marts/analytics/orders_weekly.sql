@@ -54,7 +54,7 @@ weekly_aggregates AS (
         AVG(total_revenue) AS average_daily_revenue
 
     FROM daily_orders
-    GROUP BY DATE_TRUNC('week', date_key)::date, year
+    GROUP BY 1,2,year
 ),
 
 weekly_with_wow AS (
