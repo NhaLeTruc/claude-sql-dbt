@@ -274,14 +274,14 @@
 
 ### Tests for User Story 4 (MANDATORY per constitution) ⚠️
 
-- [ ] T061 [P] [US4] Add campaign tests to `dbt_project/models/marts/analytics/_analytics__models.yml`:
+- [X] T061 [P] [US4] Add campaign tests to `dbt_project/models/marts/analytics/_analytics__models.yml`:
   - `marketing_attribution`: campaign_id (unique, not_null), channel (accepted_values: [email, social, search, display, affiliate, direct]), campaign_budget (expression_is_true: > 0), customers_acquired (expression_is_true: >= 0)
   - Document marketing_attribution with >80% column coverage including ROI calculation explanations
-- [ ] T062 [P] [US4] Create singular test `dbt_project/tests/assert_campaign_dates_valid.sql` validating end_date >= start_date for all campaigns
+- [X] T062 [P] [US4] Create singular test `dbt_project/tests/assert_campaign_dates_valid.sql` validating end_date >= start_date for all campaigns
 
 ### Implementation for User Story 4
 
-- [ ] T063 [US4] Create analytics mart `dbt_project/models/marts/analytics/marketing_attribution.sql` (table):
+- [X] T063 [US4] Create analytics mart `dbt_project/models/marts/analytics/marketing_attribution.sql` (table):
   - Join campaign_metadata seed with fact_orders (first order per customer = acquisition attribution)
   - Join to customer_analytics for customer_lifetime_value
   - Calculate customers_acquired (COUNT DISTINCT customers with first order to campaign)
@@ -291,7 +291,7 @@
   - Add is_active flag (end_date >= CURRENT_DATE)
   - Add extensive comments explaining first-touch attribution logic and ROI calculations
   - Depends on T030, T055
-- [ ] T064 [US4] Create exposure `dbt_project/models/marts/analytics/_analytics__exposures.yml`:
+- [X] T064 [US4] Create exposure `dbt_project/models/marts/analytics/_analytics__exposures.yml`:
   - Define marketing_dashboard exposure depending on marketing_attribution
   - Include owner (Analytics Team), description, mock URL
   - Demonstrates exposure tracking for downstream BI tools
@@ -306,18 +306,18 @@
 
 **Purpose**: Improvements that affect multiple user stories and final validation
 
-- [ ] T067 [P] Create analysis query `dbt_project/analyses/top_customers_by_ltv.sql`:
+- [X] T067 [P] Create analysis query `dbt_project/analyses/top_customers_by_ltv.sql`:
   - SELECT top 10 customers by lifetime_value from customer_analytics
   - Include comments explaining business question answered
-- [ ] T068 [P] Create analysis query `dbt_project/analyses/product_sales_trends.sql`:
+- [X] T068 [P] Create analysis query `dbt_project/analyses/product_sales_trends.sql`:
   - SELECT products with revenue trends (YoY growth) from product_performance
   - Include comments on trend identification
-- [ ] T069 [P] Create analysis query `dbt_project/analyses/campaign_roi_analysis.sql`:
+- [X] T069 [P] Create analysis query `dbt_project/analyses/campaign_roi_analysis.sql`:
   - SELECT campaigns by ROI from marketing_attribution
   - Include comments on ROI interpretation
-- [ ] T070 [P] Create singular test `dbt_project/tests/assert_no_negative_revenue.sql` checking all revenue fields >= 0 across all models
-- [ ] T071 [P] Add pre-hook example in `dbt_project/dbt_project.yml` for staging models (logging model execution start)
-- [ ] T072 [P] Add post-hook example in `dbt_project/dbt_project.yml` for mart models (demonstrate permissions grant syntax)
+- [X] T070 [P] Create singular test `dbt_project/tests/assert_no_negative_revenue.sql` checking all revenue fields >= 0 across all models
+- [X] T071 [P] Add pre-hook example in `dbt_project/dbt_project.yml` for staging models (logging model execution start)
+- [X] T072 [P] Add post-hook example in `dbt_project/dbt_project.yml` for mart models (demonstrate permissions grant syntax)
 - [ ] T073 Generate dbt documentation: Run `dbt docs generate` to create catalog.json and manifest.json
 - [ ] T074 Validate documentation completeness: Check that all models have descriptions, all columns documented (100% coverage)
 - [ ] T075 Run full dbt build: `dbt build` (runs all models, snapshots, and tests from scratch)

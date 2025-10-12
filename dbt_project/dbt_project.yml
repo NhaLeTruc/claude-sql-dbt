@@ -27,6 +27,9 @@ models:
     staging:
       +materialized: view
       +schema: staging
+      # Pre-hook example: Log model execution start for observability
+      +pre-hook:
+        - "{{ log('Starting execution of staging model: ' ~ this.name, info=True) }}"
 
     # Intermediate layer: ephemeral or views (business logic transformations)
     intermediate:
@@ -38,8 +41,16 @@ models:
       +materialized: table
       core:
         +schema: core
+        # Post-hook example: Grant read access to analytics role
+        # Note: Commented out as example - uncomment and customize for your environment
+        # +post-hook:
+        #   - "GRANT SELECT ON {{ this }} TO ROLE analytics_reader"
       analytics:
         +schema: analytics
+        # Post-hook example: Grant read access to analytics role
+        # Note: Commented out as example - uncomment and customize for your environment
+        # +post-hook:
+        #   - "GRANT SELECT ON {{ this }} TO ROLE analytics_reader"
 
 # Snapshot configurations
 snapshots:

@@ -1,0 +1,50 @@
+version: 2
+
+exposures:
+  - name: marketing_dashboard
+    description: >
+      Marketing analytics dashboard in BI tool showing campaign performance, ROI analysis,
+      and customer acquisition metrics. Used by marketing team for campaign optimization
+      and budget allocation decisions.
+    type: dashboard
+    maturity: high
+    url: https://bi.example.com/dashboards/marketing-attribution
+    owner:
+      name: Marketing Analytics Team
+      email: marketing-analytics@example.com
+
+    depends_on:
+      - ref('marketing_attribution')
+      - ref('customer_analytics')
+
+  - name: executive_revenue_dashboard
+    description: >
+      Executive dashboard showing high-level revenue trends, customer metrics,
+      and product performance KPIs. Updated daily for executive team reporting.
+    type: dashboard
+    maturity: high
+    url: https://bi.example.com/dashboards/executive-summary
+    owner:
+      name: Executive Analytics Team
+      email: exec-analytics@example.com
+
+    depends_on:
+      - ref('orders_daily')
+      - ref('orders_monthly')
+      - ref('customer_analytics')
+      - ref('product_performance')
+
+  - name: product_merchandising_dashboard
+    description: >
+      Product performance dashboard for merchandising team showing sales trends,
+      profit margins, category rankings, and inventory turnover metrics.
+    type: dashboard
+    maturity: medium
+    url: https://bi.example.com/dashboards/product-performance
+    owner:
+      name: Merchandising Team
+      email: merchandising@example.com
+
+    depends_on:
+      - ref('product_performance')
+      - ref('fact_order_items')
