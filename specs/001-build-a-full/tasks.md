@@ -23,24 +23,24 @@
 
 **Purpose**: Project initialization and environment setup needed by all user stories
 
-- [ ] T001 Create Docker Compose environment in `docker/docker-compose.yml` with PostgreSQL 16 + MinIO services
-- [ ] T002 [P] Create PostgreSQL initialization script `docker/postgres/init-db.sql` (creates `raw_data` schema and `ecommerce_dw` database)
-- [ ] T003 [P] Create MinIO directory structure `docker/minio/.gitkeep` (unused but available per requirement)
-- [ ] T004 [P] Generate mock data SQL scripts in `docker/postgres/mock-data/` directory:
+- [X] T001 Create Docker Compose environment in `docker/docker-compose.yml` with PostgreSQL 16 + MinIO services
+- [X] T002 [P] Create PostgreSQL initialization script `docker/postgres/init-db.sql` (creates `raw_data` schema and `ecommerce_dw` database)
+- [X] T003 [P] Create MinIO directory structure `docker/minio/.gitkeep` (unused but available per requirement)
+- [X] T004 [P] Generate mock data SQL scripts in `docker/postgres/mock-data/` directory:
   - `customers.sql` (10,000 records with generate_series)
   - `orders.sql` (50,000 records spanning 2022-2024)
   - `order_items.sql` (150,000 records, ~3 per order)
   - `products.sql` (100 products across 5 categories)
-- [ ] T005 Create dbt project structure at `dbt_project/` with standard directories:
+- [X] T005 Create dbt project structure at `dbt_project/` with standard directories:
   - `models/staging/`, `models/intermediate/`, `models/marts/core/`, `models/marts/analytics/`
   - `tests/`, `macros/`, `seeds/`, `snapshots/`, `analyses/`
-- [ ] T006 [P] Create `dbt_project/dbt_project.yml` with project configuration (materialization defaults per layer)
-- [ ] T007 [P] Create `profiles.yml` in repository root with PostgreSQL connection profile (dev target, analytics_dev schema)
-- [ ] T008 [P] Create `packages.yml` with dbt_utils dependency (version 1.2.0)
-- [ ] T009 [P] Create `requirements.txt` with dbt-core>=1.8.0 and dbt-postgres>=1.8.0
-- [ ] T010 [P] Create `.gitignore` for dbt artifacts (`target/`, `dbt_packages/`, `logs/`, `venv/`)
-- [ ] T011 [P] Create project `README.md` with setup instructions and project overview
-- [ ] T012 Test Docker environment startup: `docker-compose up -d` and verify mock data loaded
+- [X] T006 [P] Create `dbt_project/dbt_project.yml` with project configuration (materialization defaults per layer)
+- [X] T007 [P] Create `profiles.yml` in repository root with PostgreSQL connection profile (dev target, analytics_dev schema)
+- [X] T008 [P] Create `packages.yml` with dbt_utils dependency (version 1.2.0)
+- [X] T009 [P] Create `requirements.txt` with dbt-core>=1.8.0 and dbt-postgres>=1.8.0
+- [X] T010 [P] Create `.gitignore` for dbt artifacts (`target/`, `dbt_packages/`, `logs/`, `venv/`)
+- [X] T011 [P] Create project `README.md` with setup instructions and project overview
+- [ ] T012 Test Docker environment startup: `docker-compose up -d` and verify mock data loaded (REQUIRES DOCKER)
 
 ---
 
@@ -50,14 +50,14 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T013 Install dbt packages: Run `dbt deps` to install dbt_utils
-- [ ] T014 [P] Create seed file `dbt_project/seeds/product_categories.csv` with 5 categories (Electronics, Clothing, Home & Garden, Books, Toys)
-- [ ] T015 [P] Create seed file `dbt_project/seeds/campaign_metadata.csv` with 10 marketing campaigns across 6 channels
-- [ ] T016 Load seeds into database: Run `dbt seed`
-- [ ] T017 [P] Create custom macro `dbt_project/macros/calculate_days_between.sql` for date difference calculations
-- [ ] T018 [P] Create custom macro `dbt_project/macros/calculate_revenue_with_tax.sql` for consistent revenue calculations
-- [ ] T019 [P] Create custom macro `dbt_project/macros/generate_date_spine.sql` using dbt_utils for complete date ranges
-- [ ] T020 Test dbt connection: Run `dbt debug` to verify PostgreSQL connectivity
+- [ ] T013 Install dbt packages: Run `dbt deps` to install dbt_utils (REQUIRES DBT INSTALLED)
+- [X] T014 [P] Create seed file `dbt_project/seeds/product_categories.csv` with 5 categories (Electronics, Clothing, Home & Garden, Books, Toys)
+- [X] T015 [P] Create seed file `dbt_project/seeds/campaign_metadata.csv` with 10 marketing campaigns across 6 channels
+- [ ] T016 Load seeds into database: Run `dbt seed` (REQUIRES DBT + DATABASE)
+- [X] T017 [P] Create custom macro `dbt_project/macros/calculate_days_between.sql` for date difference calculations
+- [X] T018 [P] Create custom macro `dbt_project/macros/calculate_revenue_with_tax.sql` for consistent revenue calculations
+- [X] T019 [P] Create custom macro `dbt_project/macros/generate_date_spine.sql` using dbt_utils for complete date ranges
+- [ ] T020 Test dbt connection: Run `dbt debug` to verify PostgreSQL connectivity (REQUIRES DBT + DATABASE)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -73,57 +73,57 @@
 
 **NOTE: Write these tests FIRST in schema.yml files, ensure they FAIL before implementation**
 
-- [ ] T021 [P] [US1] Create source tests in `dbt_project/models/staging/_stg_ecommerce__sources.yml`:
+- [X] T021 [P] [US1] Create source tests in `dbt_project/models/staging/_stg_ecommerce__sources.yml`:
   - Define `raw_data` source with customers and orders tables
   - Add freshness checks (warn_after: 24h, error_after: 48h)
   - Add source-level tests: customers.customer_id (unique, not_null), orders.order_id (unique, not_null)
   - Document source descriptions and column business meanings
-- [ ] T022 [P] [US1] Create staging model tests in same `_stg_ecommerce__sources.yml`:
+- [X] T022 [P] [US1] Create staging model tests in same `_stg_ecommerce__sources.yml`:
   - `stg_ecommerce__customers`: customer_id (unique, not_null), email (not_null), customer_segment (accepted_values)
   - `stg_ecommerce__orders`: order_id (unique, not_null), customer_id (relationships to stg_customers), order_status (accepted_values), order_total (expression_is_true: >= 0)
   - Document all staging model purposes and column descriptions
-- [ ] T023 [P] [US1] Create dimension tests in `dbt_project/models/marts/core/_core__models.yml`:
+- [X] T023 [P] [US1] Create dimension tests in `dbt_project/models/marts/core/_core__models.yml`:
   - `dim_customers`: customer_key (unique, not_null), customer_id (unique, not_null, relationships to staging)
   - Document dim_customers purpose (SCD Type 1 current snapshot) and all column business meanings
-- [ ] T024 [P] [US1] Create mart tests in `dbt_project/models/marts/analytics/_analytics__models.yml`:
+- [X] T024 [P] [US1] Create mart tests in `dbt_project/models/marts/analytics/_analytics__models.yml`:
   - `customer_analytics`: customer_id (unique, not_null), lifetime_value (not_null, expression_is_true: >= 0), total_orders (not_null, expression_is_true: >= 0), rfm_score (expression_is_true: BETWEEN 1 AND 5)
   - Document customer_analytics purpose, grain (one row per customer), and all column business meanings (>80% column coverage required)
-- [ ] T025 [P] [US1] Create singular test `dbt_project/tests/assert_customer_ltv_matches_orders.sql` validating lifetime_value = SUM(order_total) per customer
+- [X] T025 [P] [US1] Create singular test `dbt_project/tests/assert_customer_ltv_matches_orders.sql` validating lifetime_value = SUM(order_total) per customer
 
 ### Implementation for User Story 1
 
-- [ ] T026 [P] [US1] Create staging model `dbt_project/models/staging/stg_ecommerce__customers.sql` (view materialization):
+- [X] T026 [P] [US1] Create staging model `dbt_project/models/staging/stg_ecommerce__customers.sql` (view materialization):
   - SELECT from raw_data.customers source
   - Rename columns to standard naming (customer_name, customer_segment)
   - Cast types consistently
   - Add dbt_updated_at metadata column
   - Add inline SQL comments explaining transformations
-- [ ] T027 [P] [US1] Create staging model `dbt_project/models/staging/stg_ecommerce__orders.sql` (view materialization):
+- [X] T027 [P] [US1] Create staging model `dbt_project/models/staging/stg_ecommerce__orders.sql` (view materialization):
   - SELECT from raw_data.orders source
   - Standardize column names and types
   - Add dbt_updated_at metadata
   - Add comments for order_status values
-- [ ] T028 [US1] Create intermediate model `dbt_project/models/intermediate/int_customers__orders_agg.sql` (ephemeral materialization):
+- [X] T028 [US1] Create intermediate model `dbt_project/models/intermediate/int_customers__orders_agg.sql` (ephemeral materialization):
   - Aggregate order metrics per customer (first_order_date, last_order_date, total_orders, total_order_value, average_order_value)
   - Use calculate_days_between macro for days_since_last_order
   - Filter out cancelled/returned orders
   - Add comments explaining business logic
   - Depends on T026, T027
-- [ ] T029 [US1] Create dimension model `dbt_project/models/marts/core/dim_customers.sql` (table materialization):
+- [X] T029 [US1] Create dimension model `dbt_project/models/marts/core/dim_customers.sql` (table materialization):
   - Join stg_ecommerce__customers with int_customers__orders_agg
   - Generate surrogate key using dbt_utils.surrogate_key
   - Include is_active flag (orders in last 90 days)
   - Add dbt_updated_at metadata
   - Add model-level comments explaining dimension purpose and SCD Type 1 approach
   - Depends on T028
-- [ ] T030 [US1] Create analytics mart `dbt_project/models/marts/analytics/customer_analytics.sql` (table materialization):
+- [X] T030 [US1] Create analytics mart `dbt_project/models/marts/analytics/customer_analytics.sql` (table materialization):
   - Calculate RFM metrics (Recency, Frequency, Monetary)
   - Implement customer segmentation logic (scoring algorithm: 1-5 scale for R, F, M)
   - Compute lifetime_value from total order value
   - Include all customer attributes from dim_customers
   - Add comprehensive inline comments explaining RFM calculation and segmentation rules
   - Depends on T029
-- [ ] T031 [US1] Create snapshot `dbt_project/snapshots/customer_snapshot.sql` for SCD Type 2 tracking:
+- [X] T031 [US1] Create snapshot `dbt_project/snapshots/customer_snapshot.sql` for SCD Type 2 tracking:
   - Configure timestamp strategy using updated_at column
   - Target schema: snapshots
   - Unique key: customer_id
