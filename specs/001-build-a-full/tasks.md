@@ -144,51 +144,51 @@
 
 ### Tests for User Story 2 (MANDATORY per constitution) ⚠️
 
-- [ ] T035 [P] [US2] Add product source tests to `dbt_project/models/staging/_stg_ecommerce__sources.yml`:
+- [X] T035 [P] [US2] Add product source tests to `dbt_project/models/staging/_stg_ecommerce__sources.yml`:
   - Define raw_data.products and raw_data.order_items sources
   - Add freshness checks
   - Add source tests: products.product_id (unique, not_null), order_items.order_item_id (unique, not_null)
-- [ ] T036 [P] [US2] Create staging tests in `_stg_ecommerce__sources.yml`:
+- [X] T036 [P] [US2] Create staging tests in `_stg_ecommerce__sources.yml`:
   - `stg_ecommerce__products`: product_id (unique, not_null), sku (unique, not_null), category (relationships to seed), list_price (expression_is_true: >= unit_cost)
   - `stg_ecommerce__order_items`: order_item_id (unique, not_null), order_id (relationships), product_id (relationships), quantity (expression_is_true: > 0)
-- [ ] T037 [P] [US2] Create dimension tests in `dbt_project/models/marts/core/_core__models.yml`:
+- [X] T037 [P] [US2] Create dimension tests in `dbt_project/models/marts/core/_core__models.yml`:
   - `dim_products`: product_key (unique, not_null), product_id (unique, relationships), sku (unique)
   - `fact_order_items`: order_item_id (unique, not_null), order_id (relationships), product_key (relationships)
-- [ ] T038 [P] [US2] Create mart tests in `dbt_project/models/marts/analytics/_analytics__models.yml`:
+- [X] T038 [P] [US2] Create mart tests in `dbt_project/models/marts/analytics/_analytics__models.yml`:
   - `product_performance`: product_id (unique, not_null), total_revenue (expression_is_true: >= 0), profit_margin_pct (expression_is_true: BETWEEN 0 AND 100), category_rank (expression_is_true: >= 1)
   - Document product_performance with >80% column coverage
-- [ ] T039 [P] [US2] Create singular test `dbt_project/tests/assert_order_totals_match_line_items.sql` validating order_total = SUM(line_total) per order
+- [X] T039 [P] [US2] Create singular test `dbt_project/tests/assert_order_totals_match_line_items.sql` validating order_total = SUM(line_total) per order
 
 ### Implementation for User Story 2
 
-- [ ] T040 [P] [US2] Create staging model `dbt_project/models/staging/stg_ecommerce__products.sql` (view):
+- [X] T040 [P] [US2] Create staging model `dbt_project/models/staging/stg_ecommerce__products.sql` (view):
   - Standardize product columns from raw_data.products
   - Calculate profit_margin_pct inline ((list_price - unit_cost) / list_price * 100)
   - Join to product_categories seed for category validation
   - Add comments explaining catalog structure
-- [ ] T041 [P] [US2] Create staging model `dbt_project/models/staging/stg_ecommerce__order_items.sql` (view):
+- [X] T041 [P] [US2] Create staging model `dbt_project/models/staging/stg_ecommerce__order_items.sql` (view):
   - Standardize order item columns
   - Calculate line_profit (line_total - quantity * unit_cost from products)
   - Add dbt_updated_at metadata
   - Add comments for discount and pricing logic
-- [ ] T042 [US2] Create intermediate model `dbt_project/models/intermediate/int_products__sales_agg.sql` (view):
+- [X] T042 [US2] Create intermediate model `dbt_project/models/intermediate/int_products__sales_agg.sql` (view):
   - Aggregate sales metrics per product (total_units_sold, total_revenue, total_profit, total_orders, average_unit_price)
   - Join order_items to orders, filter cancelled/returned
   - Add comments explaining aggregation logic
   - Depends on T040, T041
-- [ ] T043 [US2] Create dimension model `dbt_project/models/marts/core/dim_products.sql` (table):
+- [X] T043 [US2] Create dimension model `dbt_project/models/marts/core/dim_products.sql` (table):
   - Join products to category hierarchy
   - Generate product_key surrogate key
   - Include is_active flag, profit margins
   - Add comments on product hierarchy
   - Depends on T040
-- [ ] T044 [US2] Create fact model `dbt_project/models/marts/core/fact_order_items.sql` (incremental, unique_key: order_item_id):
+- [X] T044 [US2] Create fact model `dbt_project/models/marts/core/fact_order_items.sql` (incremental, unique_key: order_item_id):
   - Join order_items to product_key and order_key
   - Configure incremental strategy: append (filter WHERE order_id > MAX)
   - Include quantity, pricing, profit columns
   - Add is_incremental() block with comments explaining incremental logic
   - Depends on T043
-- [ ] T045 [US2] Create analytics mart `dbt_project/models/marts/analytics/product_performance.sql` (table):
+- [X] T045 [US2] Create analytics mart `dbt_project/models/marts/analytics/product_performance.sql` (table):
   - Join dim_products with int_products__sales_agg
   - Calculate category_rank and overall_rank using window functions (RANK() OVER)
   - Compute profit margins and turnover rates
