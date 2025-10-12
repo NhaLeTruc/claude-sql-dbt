@@ -445,3 +445,113 @@ models:
         description: Timestamp when dbt refreshed this mart
         tests:
           - not_null
+
+  - name: marketing_attribution
+    description: >
+      Marketing campaign attribution analytics for ROI analysis and channel optimization.
+      Uses first-touch attribution: Customer's first order determines campaign attribution.
+      Calculates customer acquisition costs (CAC), lifetime value by channel, and ROI.
+      Grain: One row per campaign.
+
+      Business Logic:
+      - First-touch attribution: campaign_id from customer's first order
+      - Customers acquired: COUNT DISTINCT customers with first order attributed to campaign
+      - Cost per acquisition (CAC): campaign_budget / customers_acquired
+      - Return on investment (ROI): ((total_revenue - campaign_budget) / campaign_budget) * 100
+      - Total revenue includes ALL orders from acquired customers (not just first order)
+    columns:
+      - name: campaign_id
+        description: Primary key; unique campaign identifier from campaign_metadata seed
+        tests:
+          - unique
+          - not_null
+
+      - name: campaign_name
+        description: Campaign display name for reporting
+        tests:
+          - not_null
+
+      - name: channel
+        description: Marketing channel for campaign (email, social, search, display, affiliate, direct)
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['email', 'social', 'search', 'display', 'affiliate', 'direct']
+              quote: true
+
+      - name: campaign_start_date
+        description: Date when campaign launched
+        tests:
+          - not_null
+
+      - name: campaign_end_date
+        description: Date when campaign ended (NULL for ongoing campaigns)
+
+      - name: campaign_budget
+        description: Total budget allocated to campaign (USD)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "> 0"
+
+      - name: customers_acquired
+        description: Number of customers acquired through this campaign (first-touch attribution)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: total_orders
+        description: Total orders from acquired customers (includes all orders, not just first)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: total_revenue
+        description: Total revenue from all orders by acquired customers (USD)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: average_customer_ltv
+        description: Average lifetime value of customers acquired through this campaign (NULL if no customers)
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+              config:
+                where: "average_customer_ltv IS NOT NULL"
+
+      - name: cost_per_acquisition
+        description: >
+          Customer acquisition cost (CAC): campaign_budget / customers_acquired.
+          NULL if no customers acquired.
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "> 0"
+              config:
+                where: "cost_per_acquisition IS NOT NULL"
+
+      - name: return_on_investment_pct
+        description: >
+          ROI percentage: ((total_revenue - campaign_budget) / campaign_budget) * 100.
+          Positive = profitable, negative = loss.
+          NULL if no revenue generated.
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= -100"
+              config:
+                where: "return_on_investment_pct IS NOT NULL"
+
+      - name: is_active
+        description: Boolean flag indicating if campaign is currently active (end_date >= CURRENT_DATE or NULL)
+        tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
+
+      - name: dbt_updated_at
+        description: Timestamp when dbt refreshed this mart
+        tests:
+          - not_null
