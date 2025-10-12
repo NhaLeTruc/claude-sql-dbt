@@ -100,3 +100,103 @@ models:
         description: Timestamp when dbt refreshed this mart
         tests:
           - not_null
+
+  - name: product_performance
+    description: >
+      Product performance analytics mart for merchandising and inventory decisions.
+      Aggregates sales performance, profitability, and ranking metrics per product.
+      Grain: One row per product.
+
+      Business Logic:
+      - Metrics calculated from completed orders only (excludes cancelled/returned)
+      - Category rank based on total revenue within category (1 = highest revenue)
+      - Profit margin percentage = (total_profit / total_revenue) * 100
+      - Includes products with zero sales for inventory planning
+    columns:
+      - name: product_id
+        description: Natural key; unique product identifier from source system
+        tests:
+          - unique
+          - not_null
+
+      - name: product_name
+        description: Product display name
+        tests:
+          - not_null
+
+      - name: sku
+        description: Stock Keeping Unit code
+        tests:
+          - unique
+          - not_null
+
+      - name: category
+        description: Product category for grouping and analysis
+        tests:
+          - not_null
+
+      - name: subcategory
+        description: Product subcategory for detailed classification
+
+      - name: total_units_sold
+        description: Total quantity sold across all completed orders
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: total_revenue
+        description: Total revenue generated from product sales (USD)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: total_profit
+        description: Total profit generated from product sales (USD)
+        tests:
+          - not_null
+
+      - name: total_orders
+        description: Number of distinct orders containing this product
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: average_unit_price
+        description: Average selling price per unit (NULL if no sales)
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+              config:
+                where: "average_unit_price IS NOT NULL"
+
+      - name: profit_margin_pct
+        description: Profit margin percentage ((total_profit / total_revenue) * 100); NULL if no sales
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "BETWEEN 0 AND 100"
+              config:
+                where: "profit_margin_pct IS NOT NULL"
+
+      - name: category_rank
+        description: >
+          Rank within category based on total revenue (1 = highest revenue in category).
+          Uses DENSE_RANK to handle ties.
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 1"
+
+      - name: is_active
+        description: Boolean flag indicating if product is currently available for sale
+        tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
+
+      - name: dbt_updated_at
+        description: Timestamp when dbt refreshed this mart
+        tests:
+          - not_null
