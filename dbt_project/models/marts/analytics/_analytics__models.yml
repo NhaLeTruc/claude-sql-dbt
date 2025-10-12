@@ -1,0 +1,102 @@
+version: 2
+
+models:
+  - name: customer_analytics
+    description: >
+      Customer analytics mart with RFM (Recency, Frequency, Monetary) analysis and lifetime value metrics.
+      Enables customer behavior analysis, segmentation, and targeted marketing.
+      Grain: One row per customer.
+
+      Business Logic:
+      - Lifetime value = sum of completed order totals (excludes cancelled/returned)
+      - Recency = days since last order
+      - Frequency = total number of orders
+      - RFM score = combined 1-5 scale score (5 is best)
+      - Segmentation based on RFM thresholds
+    columns:
+      - name: customer_id
+        description: Natural key; unique customer identifier from source system
+        tests:
+          - unique
+          - not_null
+
+      - name: customer_name
+        description: Customer full name for display and reporting
+        tests:
+          - not_null
+
+      - name: email
+        description: Customer email address for communication
+        tests:
+          - not_null
+
+      - name: customer_segment
+        description: Current customer segment (new, active, at-risk, dormant, vip)
+        tests:
+          - accepted_values:
+              values: ['new', 'active', 'at-risk', 'dormant', 'vip']
+              quote: true
+
+      - name: signup_date
+        description: Date when customer registered
+        tests:
+          - not_null
+
+      - name: first_order_date
+        description: Date of customer's first completed order (NULL if no orders)
+
+      - name: last_order_date
+        description: Date of customer's most recent order (NULL if no orders)
+
+      - name: days_since_last_order
+        description: Recency metric - days between last order and current date (NULL if no orders)
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+              config:
+                where: "days_since_last_order IS NOT NULL"
+
+      - name: total_orders
+        description: Frequency metric - total number of completed orders (excludes cancelled/returned)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: lifetime_value
+        description: Monetary metric - total revenue from customer's completed orders (USD)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: average_order_value
+        description: Average order size - lifetime_value / total_orders (NULL if no orders)
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+              config:
+                where: "average_order_value IS NOT NULL"
+
+      - name: rfm_score
+        description: >
+          Combined RFM score on 1-5 scale where 5 is best.
+          Calculated from recency, frequency, and monetary value percentiles.
+          NULL if customer has no orders.
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "BETWEEN 1 AND 5"
+              config:
+                where: "rfm_score IS NOT NULL"
+
+      - name: is_active
+        description: Boolean flag - TRUE if customer ordered in last 90 days
+        tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
+
+      - name: dbt_updated_at
+        description: Timestamp when dbt refreshed this mart
+        tests:
+          - not_null

@@ -1,0 +1,66 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: >
+      Customer dimension with SCD Type 1 (current snapshot only).
+      Combines customer master data with aggregated order metrics.
+      One row per customer showing current state and order history.
+      Grain: One row per customer_id.
+    columns:
+      - name: customer_key
+        description: Surrogate key (hash) for customer dimension; used as FK in facts
+        tests:
+          - unique
+          - not_null
+
+      - name: customer_id
+        description: Natural key from source system; business key for customer
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('stg_ecommerce__customers')
+              field: customer_id
+
+      - name: customer_name
+        description: Customer full name for display
+        tests:
+          - not_null
+
+      - name: email
+        description: Customer email address
+        tests:
+          - not_null
+
+      - name: customer_segment
+        description: Current customer segment classification
+        tests:
+          - accepted_values:
+              values: ['new', 'active', 'at-risk', 'dormant', 'vip']
+              quote: true
+
+      - name: state
+        description: US state code where customer is located
+
+      - name: country
+        description: Country where customer is located
+        tests:
+          - not_null
+
+      - name: signup_date
+        description: Date customer registered/signed up
+        tests:
+          - not_null
+
+      - name: is_active
+        description: Boolean flag indicating if customer has placed orders (TRUE if total_orders > 0)
+        tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
+
+      - name: dbt_updated_at
+        description: Timestamp when dbt refreshed this dimension
+        tests:
+          - not_null
