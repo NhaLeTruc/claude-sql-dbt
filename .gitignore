@@ -48,3 +48,4 @@ Thumbs.db
 
 # Docker volumes
 docker/postgres/data/
+tmp/
