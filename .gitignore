@@ -48,4 +48,4 @@ Thumbs.db
 
 # Docker volumes
 docker/postgres/data/
-tmp/
+docker/minio/.minio.sys/
