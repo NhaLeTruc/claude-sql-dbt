@@ -200,3 +200,248 @@ models:
         description: Timestamp when dbt refreshed this mart
         tests:
           - not_null
+
+  - name: orders_daily
+    description: >
+      Daily order time-series analytics mart with complete date spine coverage.
+      Includes days with zero orders for accurate trend analysis and forecasting.
+      Provides YoY growth calculations and cumulative metrics.
+      Grain: One row per date (2022-01-01 to 2024-12-31).
+    columns:
+      - name: date_key
+        description: Primary key; date in DATE format
+        tests:
+          - unique
+          - not_null
+
+      - name: day_of_week_name
+        description: Day of week name for weekly pattern analysis
+        tests:
+          - not_null
+
+      - name: month_name
+        description: Month name for monthly grouping
+        tests:
+          - not_null
+
+      - name: year
+        description: Year for YoY comparisons
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "BETWEEN 2022 AND 2024"
+
+      - name: total_orders
+        description: Number of orders placed on this date (0 for zero-sale days)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: total_revenue
+        description: Total revenue generated on this date (USD)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: total_units
+        description: Total units sold on this date
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: unique_customers
+        description: Number of unique customers who placed orders on this date
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: average_order_value
+        description: Average order value for this date (NULL if no orders)
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+              config:
+                where: "average_order_value IS NOT NULL"
+
+      - name: cumulative_revenue_ytd
+        description: Year-to-date cumulative revenue
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: yoy_growth_pct
+        description: Year-over-year growth percentage compared to same date last year (NULL for first year)
+
+      - name: is_weekend
+        description: Boolean flag for weekend days
+        tests:
+          - not_null
+          - accepted_values:
+              values: [true, false]
+
+      - name: dbt_updated_at
+        description: Timestamp when dbt refreshed this mart
+        tests:
+          - not_null
+
+  - name: orders_weekly
+    description: >
+      Weekly order time-series analytics mart aggregated from daily data.
+      Uses ISO week boundaries (Monday-Sunday).
+      Provides week-over-week growth calculations.
+      Grain: One row per week.
+    columns:
+      - name: week_start_date
+        description: Primary key; first day of week (Monday)
+        tests:
+          - unique
+          - not_null
+
+      - name: week_end_date
+        description: Last day of week (Sunday)
+        tests:
+          - not_null
+
+      - name: week_number
+        description: ISO week number (1-53)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "BETWEEN 1 AND 53"
+
+      - name: year
+        description: Year
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "BETWEEN 2022 AND 2024"
+
+      - name: total_orders
+        description: Total orders for the week
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: total_revenue
+        description: Total revenue for the week (USD)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: total_units
+        description: Total units sold during the week
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: unique_customers
+        description: Unique customers who ordered during the week
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: average_daily_revenue
+        description: Average revenue per day for the week
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: wow_growth_pct
+        description: Week-over-week growth percentage (NULL for first week)
+
+      - name: dbt_updated_at
+        description: Timestamp when dbt refreshed this mart
+        tests:
+          - not_null
+
+  - name: orders_monthly
+    description: >
+      Monthly order time-series analytics mart aggregated from daily data.
+      Uses calendar month boundaries.
+      Provides month-over-month growth calculations.
+      Grain: One row per month.
+    columns:
+      - name: month_start_date
+        description: Primary key; first day of month
+        tests:
+          - unique
+          - not_null
+
+      - name: month
+        description: Month number (1-12)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "BETWEEN 1 AND 12"
+
+      - name: month_name
+        description: Month name
+        tests:
+          - not_null
+
+      - name: quarter
+        description: Quarter number (1-4)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "BETWEEN 1 AND 4"
+
+      - name: year
+        description: Year
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "BETWEEN 2022 AND 2024"
+
+      - name: total_orders
+        description: Total orders for the month
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: total_revenue
+        description: Total revenue for the month (USD)
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: total_units
+        description: Total units sold during the month
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: unique_customers
+        description: Unique customers who ordered during the month
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: average_daily_revenue
+        description: Average revenue per day for the month
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+      - name: mom_growth_pct
+        description: Month-over-month growth percentage (NULL for first month)
+
+      - name: dbt_updated_at
+        description: Timestamp when dbt refreshed this mart
+        tests:
+          - not_null

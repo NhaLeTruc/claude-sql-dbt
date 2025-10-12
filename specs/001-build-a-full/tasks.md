@@ -194,7 +194,7 @@
   - Compute profit margins and turnover rates
   - Add extensive comments on ranking logic and performance calculations
   - Depends on T043, T042
-- [ ] T046 [US2] Create snapshot `dbt_project/snapshots/product_snapshot.sql` for product price/category changes:
+- [X] T046 [US2] Create snapshot `dbt_project/snapshots/product_snapshot.sql` for product price/category changes:
   - Timestamp strategy on updated_at
   - Track category migrations and price changes
   - Add comments on SCD Type 2 usage for historical pricing
@@ -214,46 +214,46 @@
 
 ### Tests for User Story 3 (MANDATORY per constitution) ⚠️
 
-- [ ] T050 [P] [US3] Create dimension tests in `dbt_project/models/marts/core/_core__models.yml`:
+- [X] T050 [P] [US3] Create dimension tests in `dbt_project/models/marts/core/_core__models.yml`:
   - `dim_date`: date_key (unique, not_null), year (expression_is_true: BETWEEN 2022 AND 2024)
   - `fact_orders`: order_id (unique, not_null), customer_key (relationships), date_key (relationships), order_total (expression_is_true: >= 0)
-- [ ] T051 [P] [US3] Create mart tests in `dbt_project/models/marts/analytics/_analytics__models.yml`:
+- [X] T051 [P] [US3] Create mart tests in `dbt_project/models/marts/analytics/_analytics__models.yml`:
   - `orders_daily`: date_key (unique, not_null), total_orders (expression_is_true: >= 0), total_revenue (expression_is_true: >= 0)
   - `orders_weekly`: week_start_date (unique, not_null), week_number (expression_is_true: BETWEEN 1 AND 53)
   - `orders_monthly`: month_start_date (unique, not_null), month (expression_is_true: BETWEEN 1 AND 12)
   - Document all time-series models with grain definitions
-- [ ] T052 [P] [US3] Create singular test `dbt_project/tests/assert_no_future_order_dates.sql` validating order_date <= CURRENT_DATE
+- [X] T052 [P] [US3] Create singular test `dbt_project/tests/assert_no_future_order_dates.sql` validating order_date <= CURRENT_DATE
 
 ### Implementation for User Story 3
 
-- [ ] T053 [US3] Create intermediate model `dbt_project/models/intermediate/int_orders__daily_agg.sql` (view):
+- [X] T053 [US3] Create intermediate model `dbt_project/models/intermediate/int_orders__daily_agg.sql` (view):
   - Aggregate orders by date (total_orders, total_revenue, total_units, unique_customers)
   - Filter cancelled/returned orders
   - Add comments explaining daily aggregation logic
   - Depends on T027, T041
-- [ ] T054 [US3] Create dimension model `dbt_project/models/marts/core/dim_date.sql` (table):
+- [X] T054 [US3] Create dimension model `dbt_project/models/marts/core/dim_date.sql` (table):
   - Use generate_date_spine macro for 2022-01-01 to 2024-12-31
   - Extract date parts (day_of_week, day_of_month, week_of_year, month, quarter, year)
   - Add is_weekend and is_holiday flags
   - Add comments explaining date dimension purpose and spine approach
-- [ ] T055 [US3] Create fact model `dbt_project/models/marts/core/fact_orders.sql` (table):
+- [X] T055 [US3] Create fact model `dbt_project/models/marts/core/fact_orders.sql` (table):
   - Join orders to customer_key and date_key
   - Include order header facts (order_status, order_total, campaign_id)
   - Add comments on fact grain (one row per order)
   - Depends on T029, T054
-- [ ] T056 [US3] Create analytics mart `dbt_project/models/marts/analytics/orders_daily.sql` (table):
+- [X] T056 [US3] Create analytics mart `dbt_project/models/marts/analytics/orders_daily.sql` (table):
   - LEFT JOIN dim_date to int_orders__daily_agg (ensures all dates present, even zero-sale days)
   - Calculate cumulative_revenue_ytd using window function (SUM() OVER partition by year ORDER BY date)
   - Calculate yoy_growth_pct using LAG() window function
   - Add comprehensive comments on time-series calculations and window functions
   - Depends on T054, T053
-- [ ] T057 [US3] Create analytics mart `dbt_project/models/marts/analytics/orders_weekly.sql` (table):
+- [X] T057 [US3] Create analytics mart `dbt_project/models/marts/analytics/orders_weekly.sql` (table):
   - Aggregate from orders_daily using DATE_TRUNC('week', date_key)
   - Calculate week_start_date, week_end_date, week_number
   - Compute wow_growth_pct (week-over-week) using LAG()
   - Add comments on weekly aggregation logic
   - Depends on T056
-- [ ] T058 [US3] Create analytics mart `dbt_project/models/marts/analytics/orders_monthly.sql` (table):
+- [X] T058 [US3] Create analytics mart `dbt_project/models/marts/analytics/orders_monthly.sql` (table):
   - Aggregate from orders_daily using DATE_TRUNC('month', date_key)
   - Calculate month metrics (month_start_date, month, month_name, year)
   - Compute mom_growth_pct and yoy_growth_pct using LAG()
