@@ -201,6 +201,24 @@ This project follows the [dbt Demo Project Constitution](.specify/memory/constit
 4. **Documentation-First**: Models and columns fully documented
 5. **Incremental Testing**: Continuous validation during development
 
+## TODOs
+
+1. Fix this:
+```bash
+[WARNING][DeprecationsSummary]: Deprecated functionality
+Summary of encountered deprecations:
+- MissingArgumentsPropertyInGenericTestDeprecation: 100 occurrences
+To see all deprecation instances instead of just the first occurrence of each,
+run command again with the `--show-all-deprecations` flag. You may also need to
+run with `--no-partial-parse` as some deprecations are only encountered during
+parsing.
+```
+2. Deepdive this:
+```bash
+dbt test --no-partial-parse --project-dir dbt_project
+# PASS=292 WARN=3 ERROR=5 SKIP=0 NO-OP=0 TOTAL=300
+```
+
 ## License
 
 This is a demonstration project for educational purposes.

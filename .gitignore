@@ -6,6 +6,7 @@ logs/
 
 # Python
 venv/
+dbt_env/
 __pycache__/
 *.py[cod]
 *$py.class
@@ -42,7 +43,6 @@ Thumbs.db
 # Environment variables
 .env
 .env.local
-dbt-venv/
 
 # Database
 *.db
