@@ -26,7 +26,7 @@ This demo implements a complete e-commerce analytics solution using dbt (data bu
 
 ```bash
 # 1. Start Docker services (PostgreSQL + MinIO)
-docker-compose -f docker/docker-compose.yml up -d
+docker compose -f docker/docker-compose.yml up -d
 
 # 2. Create Python virtual environment
 python3 -m venv venv
@@ -37,28 +37,28 @@ pip install -r requirements.txt
 
 # 4. Install dbt packages
 cd dbt_project
-dbt deps
+dbt deps --project-dir dbt_project
 
 # 5. Load seed data
-dbt seed
+dbt seed --project-dir dbt_project
 
 # 6. Test connection
-dbt debug
+dbt debug --project-dir dbt_project
 ```
 
 ### Build and Test (2-5 minutes)
 
 ```bash
 # Full build (run all models + tests)
-dbt build
+dbt build --project-dir dbt_project
 
 # Or run incrementally:
-dbt run    # Build all models
-dbt test   # Run all tests
+dbt run --project-dir dbt_project   # Build all models
+dbt test --project-dir dbt_project  # Run all tests
 
 # Generate documentation
-dbt docs generate
-dbt docs serve  # View at http://localhost:8080
+dbt docs generate --project-dir dbt_project
+dbt docs serve --project-dir dbt_project # View at http://localhost:8080
 ```
 
 ## Project Structure
@@ -149,11 +149,11 @@ ORDER BY return_on_investment DESC;
 ### Incremental Development
 ```bash
 # Work on specific model
-dbt run --select stg_ecommerce__customers
-dbt test --select stg_ecommerce__customers
+dbt run --project-dir dbt_project --select stg_ecommerce__customers
+dbt test --project-dir dbt_project --select stg_ecommerce__customers
 
 # Build with dependencies
-dbt build --select +customer_analytics
+dbt build --project-dir dbt_project --select +customer_analytics
 ```
 
 ### Test-First Approach
@@ -165,11 +165,11 @@ dbt build --select +customer_analytics
 
 ### Pre-Commit Validation
 ```bash
-dbt deps                              # Ensure packages installed
-dbt parse                             # Check syntax
-dbt compile --select state:modified+  # Compile changed models
-dbt run --select state:modified+      # Run changed models
-dbt test --select state:modified+     # Test changed models
+dbt deps --project-dir dbt_project                              # Ensure packages installed
+dbt parse --project-dir dbt_project                             # Check syntax
+dbt compile --project-dir dbt_project --select state:modified+  # Compile changed models
+dbt run --project-dir dbt_project --select state:modified+      # Run changed models
+dbt test --project-dir dbt_project --select state:modified+     # Test changed models
 dbt docs generate                     # Update documentation
 ```
 
@@ -205,18 +205,32 @@ This project follows the [dbt Demo Project Constitution](.specify/memory/constit
 
 1. Fix this:
 ```bash
-[WARNING][DeprecationsSummary]: Deprecated functionality
-Summary of encountered deprecations:
-- MissingArgumentsPropertyInGenericTestDeprecation: 100 occurrences
-To see all deprecation instances instead of just the first occurrence of each,
-run command again with the `--show-all-deprecations` flag. You may also need to
-run with `--no-partial-parse` as some deprecations are only encountered during
-parsing.
+dbt build --project-dir dbt_project --select +customer_analytics
+# 82 of 82 SKIP test assert_no_negative_revenue .................................. [SKIP]
+# 08:49:40  
+# 08:49:40  Finished running 2 table models, 78 data tests, 2 view models in 0 hours 0 minutes and 5.35 seconds (5.35s).
+# 08:49:40  
+# 08:49:40  Completed with 1 error, 0 partial successes, and 0 warnings:
+# 08:49:40  
+# 08:49:40  Failure in test assert_order_totals_match_line_items (tests/assert_order_totals_match_line_items.sql)
+# 08:49:40    Got 50000 results, configured to fail if != 0
+# 08:49:40  
+# 08:49:40    compiled code at target/compiled/ecommerce_analytics/tests/assert_order_totals_match_line_items.sql
+# 08:49:40  
+# 08:49:40    See test failures:
+#   -------------------------------------------------------------------------------------------------
+#   select * from "ecommerce_dw"."analytics_dev_test_failures"."assert_order_totals_match_line_items"
+#   -------------------------------------------------------------------------------------------------
+# 08:49:40  
+# 08:49:40  Done. PASS=78 WARN=0 ERROR=1 SKIP=3 NO-OP=0 TOTAL=82
 ```
 2. Deepdive this:
 ```bash
 dbt test --no-partial-parse --project-dir dbt_project
 # PASS=292 WARN=3 ERROR=5 SKIP=0 NO-OP=0 TOTAL=300
+
+dbt build --project-dir dbt_project
+# Done. PASS=177 WARN=2 ERROR=1 SKIP=143 NO-OP=1 TOTAL=324
 ```
 
 ## License
