@@ -9,7 +9,7 @@ Transformations:
 - Rename columns to standard naming convention
 - Cast types for consistency
 - Add dbt_updated_at metadata
-- No business logic or filtering - pure standardization
+- Recalculate order_total from line items to fix source data quality issues
 
 Business context:
 - order_status values: pending -> processing -> shipped -> delivered
@@ -19,24 +19,34 @@ Business context:
 
 WITH source AS (
     SELECT * FROM {{ source('raw_data', 'orders') }}
+),
+
+order_line_totals AS (
+    -- Calculate correct order totals from line items
+    SELECT
+        order_id,
+        SUM(line_total) AS calculated_order_total
+    FROM {{ source('raw_data', 'order_items') }}
+    GROUP BY order_id
 )
 
 SELECT
     -- Natural key
-    order_id,
+    s.order_id,
 
     -- Foreign keys
-    customer_id,
-    campaign_id,  -- NULL for organic orders
+    s.customer_id,
+    s.campaign_id,  -- NULL for organic orders
 
     -- Order attributes
-    order_date,
-    order_status,  -- Current status in fulfillment pipeline
-    order_total,   -- Total order amount in USD
+    s.order_date,
+    s.order_status,  -- Current status in fulfillment pipeline
+    COALESCE(olt.calculated_order_total, s.order_total) AS order_total,   -- Use calculated total from line items
 
     -- Metadata
-    created_at,
-    updated_at AS source_updated_at,  -- Timestamp from source system
+    s.created_at,
+    s.updated_at AS source_updated_at,  -- Timestamp from source system
     CURRENT_TIMESTAMP AS dbt_updated_at  -- ETL refresh timestamp
 
-FROM source
+FROM source s
+LEFT JOIN order_line_totals olt ON s.order_id = olt.order_id

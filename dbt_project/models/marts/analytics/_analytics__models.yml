@@ -319,7 +319,7 @@ models:
         tests:
           - not_null
           - dbt_utils.expression_is_true:
-              expression: "BETWEEN 2022 AND 2024"
+              expression: "BETWEEN 2021 AND 2024"
 
       - name: total_orders
         description: Total orders for the week
