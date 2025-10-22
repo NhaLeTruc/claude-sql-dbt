@@ -40,9 +40,9 @@ weekly_aggregates AS (
         DATE_TRUNC('week', date_key)::date AS week_start_date,
         (DATE_TRUNC('week', date_key) + INTERVAL '6 days')::date AS week_end_date,
 
-        -- Week identifiers
+        -- Week identifiers (derived from week_start_date for consistency)
         MIN(EXTRACT(WEEK FROM date_key)) AS week_number,
-        year,
+        EXTRACT(YEAR FROM DATE_TRUNC('week', date_key)::date) AS year,
 
         -- Aggregate order metrics from daily data
         SUM(total_orders) AS total_orders,
@@ -54,7 +54,7 @@ weekly_aggregates AS (
         AVG(total_revenue) AS average_daily_revenue
 
     FROM daily_orders
-    GROUP BY 1,2,year
+    GROUP BY 1,2
 ),
 
 weekly_with_wow AS (

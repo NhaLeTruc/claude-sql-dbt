@@ -21,7 +21,7 @@
 -- Check customer_analytics for negative lifetime_value or average_order_value
 SELECT
     'customer_analytics' AS model_name,
-    customer_id AS record_id,
+    customer_id::text AS record_id,
     'lifetime_value' AS field_name,
     lifetime_value AS field_value
 FROM {{ ref('customer_analytics') }}
@@ -31,7 +31,7 @@ UNION ALL
 
 SELECT
     'customer_analytics' AS model_name,
-    customer_id AS record_id,
+    customer_id::text AS record_id,
     'average_order_value' AS field_name,
     average_order_value AS field_value
 FROM {{ ref('customer_analytics') }}
@@ -42,7 +42,7 @@ UNION ALL
 -- Check product_performance for negative total_revenue or total_profit
 SELECT
     'product_performance' AS model_name,
-    product_id AS record_id,
+    product_id::text AS record_id,
     'total_revenue' AS field_name,
     total_revenue AS field_value
 FROM {{ ref('product_performance') }}
@@ -86,7 +86,7 @@ UNION ALL
 -- Check marketing_attribution for negative total_revenue
 SELECT
     'marketing_attribution' AS model_name,
-    campaign_id AS record_id,
+    campaign_id::text AS record_id,
     'total_revenue' AS field_name,
     total_revenue AS field_value
 FROM {{ ref('marketing_attribution') }}
