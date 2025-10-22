@@ -3,11 +3,11 @@
 setup:
 	docker compose -f docker/docker-compose.yml up -d
 	python3 -m venv dbt_venv && source dbt_env/bin/activate && pip install -r requirements.txt
-	cdbt deps --project-dir dbt_project
+	dbt deps --project-dir dbt_project
 	dbt seed --project-dir dbt_project
 
 shutdown:
-	docker compose -f docker/docker-compose.yml down
+	docker compose -f docker/docker-compose.yml down --volumes --remove-orphans
 
 test:
 	dbt test --no-partial-parse --project-dir dbt_project
