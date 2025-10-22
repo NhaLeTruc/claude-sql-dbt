@@ -36,7 +36,6 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # 4. Install dbt packages
-cd dbt_project
 dbt deps --project-dir dbt_project
 
 # 5. Load seed data
@@ -54,11 +53,19 @@ dbt build --project-dir dbt_project
 
 # Or run incrementally:
 dbt run --project-dir dbt_project   # Build all models
-dbt test --project-dir dbt_project  # Run all tests
+dbt test --project-dir dbt_project  # Run all tests - MUST run after builds
 
 # Generate documentation
 dbt docs generate --project-dir dbt_project
 dbt docs serve --project-dir dbt_project # View at http://localhost:8080
+```
+
+### Clean up
+
+```bash
+deactivate
+
+docker compose -f docker/docker-compose.yml down  --volumes --remove-orphans
 ```
 
 ## Project Structure
