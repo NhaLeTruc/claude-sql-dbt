@@ -1,0 +1,56 @@
+[sqlfluff]
+# SQL dialect
+dialect = postgres
+
+# Template configuration for dbt
+templater = dbt
+
+# Exclude certain paths
+exclude_rules = LT05
+
+# Rules configuration
+[sqlfluff:rules]
+# Line length (allow longer lines for readability)
+max_line_length = 120
+
+# Indentation
+indent_unit = space
+tab_space_size = 4
+
+# Comma placement
+comma_style = trailing
+
+# Capitalization
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.keywords]
+# Use lowercase for SQL keywords
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.identifiers]
+# Use lowercase for identifiers (table names, column names)
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.functions]
+# Use lowercase for function names
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.literals]
+# Use lowercase for literals
+capitalisation_policy = lower
+
+[sqlfluff:rules:aliasing.table]
+# Always use aliases for tables
+aliasing = explicit
+
+[sqlfluff:rules:aliasing.column]
+# Use explicit aliases for columns when needed
+aliasing = explicit
+
+[sqlfluff:templater:dbt]
+# dbt project directory
+project_dir = dbt_project/
+# dbt profiles directory
+profiles_dir = ./
+# dbt target
+target = dev

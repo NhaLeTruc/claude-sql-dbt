@@ -2,3 +2,7 @@
 # Using minor version ranges to allow patch updates while preventing breaking changes
 dbt-core>=1.10.13,<1.11.0
 dbt-postgres>=1.9.1,<1.10.0
+
+# Development tools (optional but recommended)
+pre-commit>=3.6.0  # Git hooks for code quality
+sqlfluff>=3.0.0    # SQL linter and formatter
