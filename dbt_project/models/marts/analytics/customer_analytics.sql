@@ -13,11 +13,9 @@ Materialization: Table (complex calculations, frequently queried)
 
 Business Logic - RFM Scoring:
 - Recency (R): Days since last order (lower is better)
-  - Score 5: 0-30 days, 4: 31-90 days, 3: 91-180 days, 2: 181-365 days, 1: 365+ days
 - Frequency (F): Number of orders (higher is better)
-  - Score 5: 20+ orders, 4: 10-19, 3: 5-9, 2: 2-4, 1: 1 order
 - Monetary (M): Lifetime value (higher is better)
-  - Score 5: $5000+, 4: $1000-4999, 3: $500-999, 2: $100-499, 1: $0-99
+- Thresholds configured in seeds/rfm_thresholds.csv for easy adjustment
 
 Combined RFM Score: Simple average of R, F, M scores (1-5 scale)
 
@@ -27,6 +25,9 @@ Segmentation:
 - At-risk: RFM score >= 2.5 and days_since_last_order > 90
 - New: total_orders = 1
 - Dormant: RFM score < 2.5
+
+Note: This model uses configurable RFM thresholds from seed data,
+making it easy to adjust scoring without modifying SQL.
 */
 
 WITH customers AS (
@@ -37,7 +38,11 @@ orders_agg AS (
     SELECT * FROM {{ ref('int_customers__orders_agg') }}
 ),
 
--- Calculate RFM scores
+rfm_thresholds AS (
+    SELECT * FROM {{ ref('rfm_thresholds') }}
+),
+
+-- Calculate RFM scores using configurable thresholds
 rfm_calc AS (
     SELECT
         c.customer_id,
@@ -55,36 +60,16 @@ rfm_calc AS (
         oa.average_order_value,
 
         -- Recency score (1-5, lower days = higher score)
-        CASE
-            WHEN oa.days_since_last_order IS NULL THEN NULL
-            WHEN oa.days_since_last_order <= 30 THEN 5
-            WHEN oa.days_since_last_order <= 90 THEN 4
-            WHEN oa.days_since_last_order <= 180 THEN 3
-            WHEN oa.days_since_last_order <= 365 THEN 2
-            ELSE 1
-        END AS recency_score,
+        -- Join to threshold table for configurable scoring
+        COALESCE(rt_r.score, 1) AS recency_score,
 
         -- Frequency score (1-5, more orders = higher score)
-        CASE
-            WHEN oa.total_orders IS NULL THEN NULL
-            WHEN oa.total_orders >= 20 THEN 5
-            WHEN oa.total_orders >= 10 THEN 4
-            WHEN oa.total_orders >= 5 THEN 3
-            WHEN oa.total_orders >= 2 THEN 2
-            ELSE 1
-        END AS frequency_score,
+        COALESCE(rt_f.score, 1) AS frequency_score,
 
         -- Monetary score (1-5, higher value = higher score)
-        CASE
-            WHEN oa.total_order_value IS NULL THEN NULL
-            WHEN oa.total_order_value >= 5000 THEN 5
-            WHEN oa.total_order_value >= 1000 THEN 4
-            WHEN oa.total_order_value >= 500 THEN 3
-            WHEN oa.total_order_value >= 100 THEN 2
-            ELSE 1
-        END AS monetary_score,
+        COALESCE(rt_m.score, 1) AS monetary_score,
 
-        -- Activity flag
+        -- Activity flag (active if ordered within 90 days)
         CASE
             WHEN oa.days_since_last_order IS NOT NULL AND oa.days_since_last_order <= 90
             THEN TRUE
@@ -94,6 +79,19 @@ rfm_calc AS (
     FROM customers c
     LEFT JOIN orders_agg oa
         ON c.customer_id = oa.customer_id
+
+    -- Join to RFM threshold configurations
+    LEFT JOIN rfm_thresholds rt_r
+        ON rt_r.metric = 'recency'
+        AND oa.days_since_last_order BETWEEN rt_r.min_value AND rt_r.max_value
+
+    LEFT JOIN rfm_thresholds rt_f
+        ON rt_f.metric = 'frequency'
+        AND COALESCE(oa.total_orders, 0) BETWEEN rt_f.min_value AND rt_f.max_value
+
+    LEFT JOIN rfm_thresholds rt_m
+        ON rt_m.metric = 'monetary'
+        AND COALESCE(oa.total_order_value, 0) BETWEEN rt_m.min_value AND rt_m.max_value
 )
 
 SELECT

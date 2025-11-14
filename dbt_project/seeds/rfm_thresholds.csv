@@ -1,0 +1,16 @@
+metric,score,min_value,max_value,description
+recency,5,0,30,Very Recent - Last order within 30 days
+recency,4,31,90,Recent - Last order within 31-90 days
+recency,3,91,180,Moderate - Last order within 91-180 days
+recency,2,181,365,Stale - Last order within 181-365 days
+recency,1,366,999999,Very Stale - Last order over 365 days ago
+frequency,5,20,999999,Very High - 20+ orders
+frequency,4,10,19,High - 10-19 orders
+frequency,3,5,9,Moderate - 5-9 orders
+frequency,2,2,4,Low - 2-4 orders
+frequency,1,1,1,Very Low - 1 order only
+monetary,5,5000,999999999,Very High Value - $5000+
+monetary,4,1000,4999,High Value - $1000-$4999
+monetary,3,500,999,Moderate Value - $500-$999
+monetary,2,100,499,Low Value - $100-$499
+monetary,1,0,99,Very Low Value - $0-$99

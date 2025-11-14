@@ -1,0 +1,74 @@
+version: 2
+
+seeds:
+  - name: product_categories
+    description: >
+      Reference data for product category classifications.
+      Used for product categorization and hierarchy.
+    columns:
+      - name: category_id
+        description: Unique identifier for product category
+      - name: category_name
+        description: Display name of the category
+      - name: description
+        description: Detailed description of what products belong in this category
+
+  - name: campaign_metadata
+    description: >
+      Marketing campaign reference data including budgets and date ranges.
+      Used for campaign attribution and ROI analysis.
+    columns:
+      - name: campaign_id
+        description: Unique identifier for marketing campaign
+      - name: campaign_name
+        description: Display name of the campaign
+      - name: channel
+        description: Marketing channel (email, social, search, display, affiliate)
+      - name: start_date
+        description: Campaign start date
+      - name: end_date
+        description: Campaign end date (NULL for ongoing campaigns)
+      - name: budget
+        description: Campaign budget in dollars
+
+  - name: rfm_thresholds
+    description: >
+      Configurable RFM (Recency, Frequency, Monetary) scoring thresholds.
+      Used by customer_analytics model to calculate customer segments.
+      Business users can adjust these thresholds to fine-tune segmentation
+      without modifying SQL code.
+
+      Metrics:
+      - recency: Days since last order (lower is better)
+      - frequency: Number of orders (higher is better)
+      - monetary: Lifetime value in dollars (higher is better)
+
+      Scores range from 1 (lowest) to 5 (highest).
+    columns:
+      - name: metric
+        description: RFM metric type (recency, frequency, monetary)
+        tests:
+          - accepted_values:
+              values: ['recency', 'frequency', 'monetary']
+              quote: true
+
+      - name: score
+        description: Score value from 1 (lowest) to 5 (highest)
+        tests:
+          - accepted_values:
+              values: [1, 2, 3, 4, 5]
+
+      - name: min_value
+        description: Minimum value for this threshold (inclusive)
+        tests:
+          - not_null
+
+      - name: max_value
+        description: Maximum value for this threshold (inclusive)
+        tests:
+          - not_null
+
+      - name: description
+        description: Human-readable description of what this threshold represents
+        tests:
+          - not_null
