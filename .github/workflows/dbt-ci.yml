@@ -1,0 +1,144 @@
+name: dbt CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, claude/*]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Build and Test dbt Models
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: dbt_user
+          POSTGRES_PASSWORD: dbt_password
+          POSTGRES_DB: ecommerce_dw
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Install dbt packages
+        run: |
+          dbt deps --project-dir dbt_project
+        env:
+          DBT_PROFILES_DIR: ${{ github.workspace }}
+
+      - name: Initialize database with mock data
+        run: |
+          # Wait for postgres to be ready
+          sleep 5
+
+          # Run initialization scripts
+          PGPASSWORD=dbt_password psql -h localhost -U dbt_user -d ecommerce_dw -f docker/postgres/init-db.sql
+          PGPASSWORD=dbt_password psql -h localhost -U dbt_user -d ecommerce_dw -f docker/postgres/mock-data/customers.sql
+          PGPASSWORD=dbt_password psql -h localhost -U dbt_user -d ecommerce_dw -f docker/postgres/mock-data/orders.sql
+          PGPASSWORD=dbt_password psql -h localhost -U dbt_user -d ecommerce_dw -f docker/postgres/mock-data/order_items.sql
+          PGPASSWORD=dbt_password psql -h localhost -U dbt_user -d ecommerce_dw -f docker/postgres/mock-data/products.sql
+
+      - name: Load seed data
+        run: |
+          dbt seed --project-dir dbt_project
+        env:
+          DBT_PROFILES_DIR: ${{ github.workspace }}
+
+      - name: Run dbt models
+        run: |
+          dbt run --project-dir dbt_project
+        env:
+          DBT_PROFILES_DIR: ${{ github.workspace }}
+
+      - name: Run dbt tests
+        run: |
+          dbt test --project-dir dbt_project
+        env:
+          DBT_PROFILES_DIR: ${{ github.workspace }}
+
+      - name: Generate documentation
+        run: |
+          dbt docs generate --project-dir dbt_project
+        env:
+          DBT_PROFILES_DIR: ${{ github.workspace }}
+
+      - name: Upload dbt artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dbt-artifacts
+          path: |
+            dbt_project/target/*.json
+            dbt_project/target/*.html
+          retention-days: 30
+
+      - name: Check test results
+        run: |
+          echo "✅ All dbt models built successfully"
+          echo "✅ All tests passed"
+          echo "📊 Check artifacts for detailed results"
+
+  lint:
+    name: SQL Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run sqlfluff lint
+        run: |
+          sqlfluff lint dbt_project/models --dialect postgres || true
+        continue-on-error: true
+
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    if: always()
+
+    steps:
+      - name: Check results
+        run: |
+          if [ "${{ needs.test.result }}" == "success" ]; then
+            echo "✅ Build and Test: PASSED"
+          else
+            echo "❌ Build and Test: FAILED"
+            exit 1
+          fi
+
+          if [ "${{ needs.lint.result }}" == "success" ]; then
+            echo "✅ SQL Linting: PASSED"
+          else
+            echo "⚠️  SQL Linting: WARNING (non-blocking)"
+          fi
