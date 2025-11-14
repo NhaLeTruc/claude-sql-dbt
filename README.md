@@ -130,6 +130,66 @@ docker/
     └── mock-data/           # Synthetic test data
 ```
 
+## Architecture
+
+### Data Flow Diagram
+
+```mermaid
+graph TB
+    subgraph "Source Systems"
+        A[Raw Data<br/>PostgreSQL<br/>raw_data schema]
+        Seeds[Reference Data<br/>CSVs]
+    end
+
+    subgraph "dbt Transformation Layers"
+        B[Staging Layer<br/>Views<br/>4 models]
+        C[Intermediate Layer<br/>Ephemeral<br/>3 models]
+        D[Core Layer<br/>Tables<br/>5 models]
+        E[Analytics Layer<br/>Tables<br/>6 marts]
+    end
+
+    subgraph "Historical Tracking"
+        Snap[Snapshots<br/>SCD Type 2<br/>2 tables]
+    end
+
+    subgraph "Outputs"
+        F[BI Tools<br/>Tableau/Looker/etc]
+        Docs[dbt Docs<br/>Lineage & Catalog]
+        Tests[300+ Tests<br/>Data Quality]
+    end
+
+    A -->|source| B
+    Seeds -->|ref| D
+    B -->|ref| C
+    C -->|ref| D
+    D -->|ref| E
+    B -->|snapshot| Snap
+    Snap -.->|historical context| D
+
+    E --> F
+    E --> Docs
+    E --> Tests
+    D --> Tests
+    B --> Tests
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style E fill:#bbf,stroke:#333,stroke-width:2px
+    style F fill:#bfb,stroke:#333,stroke-width:2px
+    style Tests fill:#fbb,stroke:#333,stroke-width:2px
+```
+
+### Layer Details
+
+| Layer | Materialization | Purpose | Models | Tests |
+|-------|----------------|---------|--------|-------|
+| **Staging** | Views | Source standardization, light transformations | 4 | 40+ |
+| **Intermediate** | Ephemeral | Business logic, aggregations (not persisted) | 3 | 15+ |
+| **Core** | Tables | Star schema (dimensions & facts) | 5 | 30+ |
+| **Analytics** | Tables | Business-ready marts for self-service | 6 | 50+ |
+| **Snapshots** | Tables | Historical tracking (SCD Type 2) | 2 | - |
+
+**Total**: 20 models, 300+ tests, 12+ dbt features
+
 ## Features Demonstrated
 
 ### Data Modeling
