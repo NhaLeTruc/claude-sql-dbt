@@ -22,15 +22,43 @@ This demo implements a complete e-commerce analytics solution using dbt (data bu
 - Python 3.11+
 - Git
 
+### ⚠️ Security Note
+
+**Local Development Only**: The credentials in `profiles.yml` and `docker-compose.yml` are for **LOCAL DEVELOPMENT ONLY**:
+- Database user: `dbt_user`
+- Database password: `dbt_password`
+
+**Never use these credentials in production environments.**
+
+For production deployments, the project is configured to use environment variables:
+- `DBT_PROD_HOST`, `DBT_PROD_PORT`, `DBT_PROD_USER`, `DBT_PROD_PASSWORD`, `DBT_PROD_DB`
+
+See `profiles.yml` prod target configuration for details.
+
 ### Setup (5 minutes)
+
+**Option 1: Using Make (Recommended)**
+
+```bash
+make setup
+```
+
+This automated command will:
+1. Start Docker services (PostgreSQL + MinIO)
+2. Create Python virtual environment (`dbt_env`)
+3. Install dbt and dependencies
+4. Install dbt packages
+5. Load seed data
+
+**Option 2: Manual Setup**
 
 ```bash
 # 1. Start Docker services (PostgreSQL + MinIO)
 docker compose -f docker/docker-compose.yml up -d
 
 # 2. Create Python virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+python3 -m venv dbt_env
+source dbt_env/bin/activate  # On Windows: dbt_env\Scripts\activate
 
 # 3. Install dbt
 pip install -r requirements.txt
@@ -47,25 +75,36 @@ dbt debug --project-dir dbt_project
 
 ### Build and Test (2-5 minutes)
 
+**Using Make (Recommended)**
+
+```bash
+make build  # Full build (run all models + tests)
+make test   # Run tests only
+make docs   # Generate and serve documentation
+```
+
+**Manual Commands**
+
 ```bash
 # Full build (run all models + tests)
-dbt build --project-dir dbt_project
+./dbt_env/bin/dbt build --project-dir dbt_project
 
 # Or run incrementally:
-dbt run --project-dir dbt_project   # Build all models
-dbt test --project-dir dbt_project  # Run all tests - MUST run after builds
+./dbt_env/bin/dbt run --project-dir dbt_project   # Build all models
+./dbt_env/bin/dbt test --project-dir dbt_project  # Run all tests - MUST run after builds
 
 # Generate documentation
-dbt docs generate --project-dir dbt_project
-dbt docs serve --project-dir dbt_project # View at http://localhost:8080
+./dbt_env/bin/dbt docs generate --project-dir dbt_project
+./dbt_env/bin/dbt docs serve --project-dir dbt_project # View at http://localhost:8080
 ```
 
 ### Clean up
 
 ```bash
-deactivate
+make shutdown  # Automated cleanup
 
-docker compose -f docker/docker-compose.yml down  --volumes --remove-orphans
+# Or manually:
+docker compose -f docker/docker-compose.yml down --volumes --remove-orphans
 ```
 
 ## Project Structure
