@@ -1,20 +1,32 @@
-.PHONY: setup test build docs
+.PHONY: setup test build docs shutdown
 
 setup:
+	@echo "🚀 Starting Docker services..."
 	docker compose -f docker/docker-compose.yml up -d
-	python3 -m venv dbt_venv && source dbt_env/bin/activate && pip install -r requirements.txt
-	dbt deps --project-dir dbt_project
-	dbt seed --project-dir dbt_project
+	@echo "📦 Creating virtual environment..."
+	python3 -m venv dbt_env
+	@echo "⚙️  Installing dependencies..."
+	./dbt_env/bin/pip install -r requirements.txt
+	@echo "📚 Installing dbt packages..."
+	./dbt_env/bin/dbt deps --project-dir dbt_project
+	@echo "🌱 Loading seed data..."
+	./dbt_env/bin/dbt seed --project-dir dbt_project
+	@echo "✅ Setup complete!"
 
 shutdown:
+	@echo "🛑 Stopping Docker services..."
 	docker compose -f docker/docker-compose.yml down --volumes --remove-orphans
+	@echo "✅ Shutdown complete!"
 
 test:
-	dbt test --no-partial-parse --project-dir dbt_project
+	@echo "🧪 Running dbt tests..."
+	./dbt_env/bin/dbt test --no-partial-parse --project-dir dbt_project
 
 build:
-	dbt build --no-partial-parse --project-dir dbt_project
+	@echo "🏗️  Building dbt project..."
+	./dbt_env/bin/dbt build --no-partial-parse --project-dir dbt_project
 
 docs:
-	dbt docs generate --project-dir dbt_project
-	dbt docs serve --project-dir dbt_project
+	@echo "📖 Generating documentation..."
+	./dbt_env/bin/dbt docs generate --project-dir dbt_project
+	./dbt_env/bin/dbt docs serve --project-dir dbt_project
