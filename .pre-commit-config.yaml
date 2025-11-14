@@ -1,0 +1,63 @@
+# Pre-commit hooks for code quality and consistency
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: Trim trailing whitespace
+      - id: end-of-file-fixer
+        name: Fix end of files
+      - id: check-yaml
+        name: Check YAML syntax
+        exclude: 'dbt_project/package-lock.yml'  # Generated file
+      - id: check-added-large-files
+        name: Check for large files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+        name: Check for merge conflicts
+      - id: mixed-line-ending
+        name: Fix mixed line endings
+        args: ['--fix=lf']
+
+  # SQL formatting and linting with sqlfluff
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.0.0
+    hooks:
+      - id: sqlfluff-lint
+        name: Lint SQL with sqlfluff
+        args: ['--dialect', 'postgres', '--exclude-rules', 'LT05']
+        files: \.sql$
+        additional_dependencies: ['dbt-postgres>=1.9.1,<1.10.0']
+      - id: sqlfluff-fix
+        name: Fix SQL formatting
+        args: ['--dialect', 'postgres', '--exclude-rules', 'LT05']
+        files: \.sql$
+        additional_dependencies: ['dbt-postgres>=1.9.1,<1.10.0']
+
+  # Python formatting (for any Python scripts)
+  - repo: https://github.com/psf/black
+    rev: 24.3.0
+    hooks:
+      - id: black
+        name: Format Python with black
+        language_version: python3.11
+
+  # Markdown formatting
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        name: Format Markdown and YAML
+        types_or: [markdown, yaml]
+        exclude: 'dbt_project/package-lock.yml'
+
+# Configuration
+default_language_version:
+  python: python3.11
+
+# Run these checks on every commit
+default_stages: [commit]
