@@ -23,8 +23,8 @@ SELECT
         WHEN category = 'Books' THEN (ARRAY['Fiction', 'Non-Fiction', 'Reference'])[FLOOR(RANDOM() * 3 + 1)]
         WHEN category = 'Toys' THEN (ARRAY['Educational', 'Games', 'Outdoor'])[FLOOR(RANDOM() * 3 + 1)]
     END AS subcategory,
-    ROUND((10 + RANDOM() * 90)::NUMERIC, 2) AS unit_cost,
-    ROUND((20 + RANDOM() * 180)::NUMERIC, 2) AS list_price,
+    FLOOR(RANDOM() * (100 - 60 + 1) + 60)::NUMERIC AS unit_cost,
+    FLOOR(RANDOM() * (300 - 100 + 1) + 100)::NUMERIC AS list_price,
     CASE WHEN RANDOM() < 0.9 THEN TRUE ELSE FALSE END AS is_active,
     CURRENT_TIMESTAMP - (RANDOM() * INTERVAL '730 days') AS updated_at
 FROM (
