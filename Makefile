@@ -20,11 +20,12 @@ shutdown:
 
 test:
 	@echo "🧪 Running dbt tests..."
-	./dbt_env/bin/dbt test --no-partial-parse --project-dir dbt_project
+	./dbt_env/bin/dbt run --project-dir dbt_project
+	./dbt_env/bin/dbt test --project-dir dbt_project
 
 build:
 	@echo "🏗️  Building dbt project..."
-	./dbt_env/bin/dbt build --no-partial-parse --project-dir dbt_project
+	./dbt_env/bin/dbt build --project-dir dbt_project
 
 docs:
 	@echo "📖 Generating documentation..."
